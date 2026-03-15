@@ -1,372 +1,420 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>V-Tohnna Secure</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
-    <style>
-        :root {
-            --primary: #0084ff;
-            --bg: #f0f2f5;
-            --dark: #1c1e21;
-            --sent: #0084ff;
-            --received: #e4e6eb;
-            --danger: #ff3b30;
-        }
+<!DOCTYPE html>  <html lang="en">  
+<head>  
+<meta charset="UTF-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1.0">  
+<title>V-Tohnna Employee Chat</title>  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>  <style>  
+  
+body{  
+margin:0;  
+font-family:Segoe UI;  
+background:#f0f2f5;  
+height:100vh;  
+display:flex;  
+flex-direction:column;  
+}  
+  
+.header{  
+background:#1e2a38;  
+color:white;  
+padding:12px 20px;  
+display:flex;  
+justify-content:space-between;  
+}  
+  
+.main{  
+flex:1;  
+display:flex;  
+}  
+  
+.sidebar{  
+width:300px;  
+background:white;  
+border-right:1px solid #ddd;  
+display:flex;  
+flex-direction:column;  
+}  
+  
+.chat-item{  
+padding:14px;  
+border-bottom:1px solid #eee;  
+cursor:pointer;  
+display:flex;  
+justify-content:space-between;  
+}  
+  
+.chat-item:hover{  
+background:#f5f5f5;  
+}  
+  
+.badge{  
+background:#28a745;  
+color:white;  
+padding:2px 7px;  
+border-radius:20px;  
+font-size:12px;  
+}  
+  
+.online-dot{  
+width:8px;  
+height:8px;  
+background:#28a745;  
+border-radius:50%;  
+display:inline-block;  
+margin-left:6px;  
+}  
+  
+.chat-window{  
+flex:1;  
+display:flex;  
+flex-direction:column;  
+}  
+  
+#chat-header{  
+background:white;  
+padding:12px;  
+border-bottom:1px solid #ddd;  
+font-weight:600;  
+}  
+  
+.messages{  
+flex:1;  
+overflow:auto;  
+padding:20px;  
+display:flex;  
+flex-direction:column;  
+gap:8px;  
+background:#e5ddd5;  
+}  
+  
+.msg{  
+max-width:70%;  
+padding:10px;  
+border-radius:8px;  
+}  
+  
+.sent{  
+align-self:flex-end;  
+background:#dcf8c6;  
+}  
+  
+.received{  
+align-self:flex-start;  
+background:white;  
+}  
+  
+.time{  
+font-size:10px;  
+color:#777;  
+text-align:right;  
+}  
+  
+.input-area{  
+display:flex;  
+gap:6px;  
+padding:10px;  
+background:#f0f0f0;  
+}  
+  
+#msg-input{  
+flex:1;  
+padding:10px;  
+border-radius:20px;  
+border:1px solid #ccc;  
+}  
+  
+.send-btn{  
+background:#007bff;  
+color:white;  
+border:none;  
+padding:10px 16px;  
+border-radius:20px;  
+cursor:pointer;  
+}  
+  
+</style>  </head>  <body>  <div class="header">  
+<b>V-Tohnna Secure Employee Chat</b>  
+<div>ID: <span id="my-id"></span></div>  
+</div>  <div class="main">  <div class="sidebar">  <div style="padding:15px;font-weight:600;">Employees</div>  <div id="chat-list"></div>  </div>  <div class="chat-window">  <div id="chat-header">  
+Select Employee  
+<button onclick="clearChat()" style="float:right;background:red;color:white;border:none;padding:6px 10px;border-radius:6px;">Clean Chat</button>  
+</div>  <div id="messages" class="messages"></div>  <div class="input-area">  <input id="msg-input" placeholder="Type message">  <input type="file" id="file" hidden>  <button onclick="file.click()">📎</button>
 
-        * { box-sizing: border-box; }
+<button class="send-btn" onclick="sendMessage()">Send</button>
 
-        body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: var(--bg);
-            height: 100dvh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .header {
-            background: var(--dark);
-            color: white;
-            padding: 12px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 10;
-        }
-
-        .main {
-            flex: 1;
-            display: flex;
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* Responsive Sidebar */
-        .sidebar {
-            width: 280px;
-            background: white;
-            border-right: 1px solid #ddd;
-            display: flex;
-            flex-direction: column;
-            transition: width 0.3s ease;
-        }
-
-        @media (max-width: 600px) {
-            .sidebar { width: 70px; }
-            .sidebar span, .sidebar h3 { display: none; }
-            .new-chat-btn { border-radius: 50%; width: 40px; height: 40px; padding: 0 !important; }
-            .chat-item { text-align: center; font-size: 10px; padding: 10px 5px !important; }
-        }
-
-        .sidebar-header {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .new-chat-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .clear-btn {
-            background: #f0f2f5;
-            color: var(--danger);
-            border: 1px solid #ddd;
-            padding: 8px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 12px;
-            display: none; /* Shown only when chat is active */
-        }
-
-        .chat-list { flex: 1; overflow-y: auto; }
-        .chat-item {
-            padding: 15px;
-            border-bottom: 1px solid #f0f2f5;
-            cursor: pointer;
-            word-break: break-all;
-        }
-        .chat-item.active { background: #e7f3ff; color: var(--primary); font-weight: bold; }
-
-        /* Chat Window */
-        .chat-window {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: white;
-        }
-
-        .messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            background: #fcfcfc;
-        }
-
-        .msg {
-            max-width: 85%;
-            padding: 10px 14px;
-            border-radius: 18px;
-            font-size: 14px;
-            position: relative;
-            line-height: 1.4;
-            user-select: none;
-            -webkit-touch-callout: none;
-        }
-
-        .sent { align-self: flex-end; background: var(--sent); color: white; border-bottom-right-radius: 2px; }
-        .received { align-self: flex-start; background: var(--received); color: black; border-bottom-left-radius: 2px; }
-
-        .time { font-size: 9px; opacity: 0.7; margin-top: 4px; display: block; text-align: right; }
-
-        .input-area {
-            padding: 12px;
-            background: white;
-            border-top: 1px solid #eee;
-            display: flex;
-            gap: 8px;
-        }
-
-        #msg-input {
-            flex: 1;
-            padding: 12px 18px;
-            border-radius: 25px;
-            border: 1px solid #ddd;
-            outline: none;
-            background: #f0f2f5;
-        }
-
-        .send-btn {
-            background: var(--primary);
-            border: none;
-            color: white;
-            padding: 0 18px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        /* SMART CONTEXT MENU (Mobile Friendly) */
-        #msg-menu {
-            position: fixed;
-            display: none;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-            z-index: 9999;
-            min-width: 160px;
-            overflow: hidden;
-        }
-
-        #msg-menu div {
-            padding: 14px 20px;
-            cursor: pointer;
-            font-size: 15px;
-            border-bottom: 1px solid #f0f2f5;
-        }
-        #msg-menu div:last-child { border: none; }
-        #msg-menu div:active { background: #f0f2f5; }
-
-    </style>
-</head>
-<body>
-
-    <div class="header">
-        <div>🛡️ <b>V-Secure</b></div>
-        <div style="font-size: 11px;">My ID: <span id="my-id" style="font-family: monospace; color: #4cd964;"></span></div>
-    </div>
-
-    <div class="main">
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <button class="new-chat-btn" onclick="startNewChat()">+ <span>New Chat</span></button>
-                <button id="clear-btn" class="clear-btn" onclick="clearChat()">🗑 <span>Clear History</span></button>
-            </div>
-            <div id="chat-list" class="chat-list"></div>
-        </div>
-
-        <div class="chat-window">
-            <div id="messages" class="messages"></div>
-            <div class="input-area">
-                <input id="msg-input" placeholder="Type a message..." autocomplete="off">
-                <button class="send-btn" onclick="sendMessage()">Send</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="msg-menu">
-        <div onclick="editMsg()">✏️ Edit Message</div>
-        <div onclick="deleteMsg()" style="color: var(--danger);">🗑 Delete for me</div>
-        <div onclick="closeMenu()" style="background: #f9f9f9; text-align: center; font-weight: bold;">Cancel</div>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-        import {
-            getFirestore, collection, addDoc, query, orderBy, onSnapshot, doc, updateDoc, getDocs, deleteDoc
-        } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDOmNu5GsxWLWGw6FACF40vEZ7-rkCQGZc",
-            authDomain: "v-tohnna-d8fd0.firebaseapp.com",
-            projectId: "v-tohnna-d8fd0",
-            storageBucket: "v-tohnna-d8fd0.appspot.com",
-            messagingSenderId: "929268606043",
-            appId: "1:929268606043:web:1b806754745934eaa30b7e"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const SECRET = "v-secure-123";
-
-        let myID = localStorage.getItem("userid") || 'User_' + Math.floor(Math.random()*1000);
-        localStorage.setItem("userid", myID);
-        document.getElementById("my-id").innerText = myID;
-
-        let selectedUser = null;
-        let unsub = null;
-        let currentMsgID = null;
-        let currentMsgData = null;
-
-        function encrypt(t) { return CryptoJS.AES.encrypt(t, SECRET).toString(); }
-        function decrypt(c) {
-            try { return CryptoJS.AES.decrypt(c, SECRET).toString(CryptoJS.enc.Utf8); } 
-            catch { return "🔒 Decryption Failed"; }
-        }
-
-        window.startNewChat = () => {
-            const t = prompt("Enter Friend's ID:");
-            if(t && t.trim() !== myID) window.openChat(t.trim());
-        };
-
-        window.sendMessage = async () => {
-            const input = document.getElementById("msg-input");
-            if (!selectedUser || !input.value.trim()) return;
-            await addDoc(collection(db, "messages"), {
-                from: myID, to: selectedUser, message: encrypt(input.value),
-                timestamp: Date.now(), time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
-            });
-            input.value = "";
-        };
-
-        window.openChat = (user) => {
-            selectedUser = user;
-            document.getElementById("clear-btn").style.display = "block";
-            document.querySelectorAll('.chat-item').forEach(el => el.classList.toggle('active', el.innerText === user));
-            
-            if(unsub) unsub();
-            const q = query(collection(db, "messages"), orderBy("timestamp", "asc"));
-            unsub = onSnapshot(q, (snap) => {
-                const area = document.getElementById("messages");
-                area.innerHTML = "";
-                snap.forEach(d => {
-                    const m = d.data();
-                    if((m.from===myID && m.to===user) || (m.from===user && m.to===myID)){
-                        const div = document.createElement("div");
-                        div.className = `msg ${m.from === myID ? 'sent' : 'received'}`;
-                        div.innerHTML = `<div>${decrypt(m.message)}</div><span class="time">${m.time} ${m.edited ? '(ed)' : ''}</span>`;
-                        
-                        div.oncontextmenu = (e) => handleMenuEvent(e, d.id, m);
-                        
-                        let timer;
-                        div.ontouchstart = (e) => { timer = setTimeout(() => handleMenuEvent(e.touches[0], d.id, m), 700); };
-                        div.ontouchend = () => clearTimeout(timer);
-                        
-                        area.appendChild(div);
-                    }
-                });
-                area.scrollTop = area.scrollHeight;
-            });
-        };
-
-        function handleMenuEvent(e, id, data) {
-            if (data.from !== myID) return;
-            if (e.preventDefault) e.preventDefault();
-            
-            currentMsgID = id;
-            currentMsgData = data;
-
-            const menu = document.getElementById("msg-menu");
-            menu.style.display = "block";
-
-            let x = e.clientX || e.pageX;
-            let y = e.clientY || e.pageY;
-            
-            // Stay within screen bounds
-            if (x + 160 > window.innerWidth) x -= 160;
-            if (y + 150 > window.innerHeight) y -= 150;
-
-            menu.style.left = x + "px";
-            menu.style.top = y + "px";
-        }
-
-        window.closeMenu = () => { document.getElementById("msg-menu").style.display = "none"; };
-
-        window.editMsg = async () => {
-            const n = prompt("Edit:", decrypt(currentMsgData.message));
-            if(n) await updateDoc(doc(db, "messages", currentMsgID), { message: encrypt(n), edited: true });
-            closeMenu();
-        };
-
-        window.deleteMsg = async () => {
-            if(confirm("Delete message?")) await updateDoc(doc(db, "messages", currentMsgID), { message: encrypt("🚫 Deleted") });
-            closeMenu();
-        };
-
-        window.clearChat = async () => {
-            if(!selectedUser) return;
-            if(confirm(`Clear all messages with ${selectedUser}? This cannot be undone.`)){
-                const q = query(collection(db, "messages"));
-                const snap = await getDocs(q);
-                snap.forEach(async (d) => {
-                    const m = d.data();
-                    if((m.from===myID && m.to===selectedUser) || (m.from===selectedUser && m.to===myID)){
-                        await deleteDoc(doc(db, "messages", d.id));
-                    }
-                });
-            }
-        };
-
-        function init() {
-            onSnapshot(query(collection(db, "messages"), orderBy("timestamp", "desc")), (snap) => {
-                const users = new Set();
-                snap.forEach(d => {
-                    const m = d.data();
-                    if(m.from === myID) users.add(m.to);
-                    else if(m.to === myID) users.add(m.from);
-                });
-                const list = document.getElementById("chat-list");
-                list.innerHTML = "";
-                users.forEach(u => {
-                    const div = document.createElement("div");
-                    div.className = "chat-item" + (selectedUser === u ? " active" : "");
-                    div.innerText = u;
-                    div.onclick = () => window.openChat(u);
-                    list.appendChild(div);
-                });
-            });
-        }
-
-        document.getElementById("msg-input").onkeydown = (e) => { if(e.key==="Enter") sendMessage(); };
-        window.onclick = (e) => { if(!e.target.closest('#msg-menu')) closeMenu(); };
-
-        init();
-    </script>
-</body>
-</html>
+</div>  </div>  </div>  <script type="module">  
+  
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";  
+  
+import {  
+getFirestore,  
+collection,  
+addDoc,  
+query,  
+orderBy,  
+onSnapshot,  
+doc,  
+updateDoc,  
+deleteDoc,  
+getDocs,  
+setDoc  
+} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";  
+  
+/* Firebase */  
+  
+const firebaseConfig={  
+apiKey:"AIzaSyDOmNu5GsxWLWGw6FACF40vEZ7-rkCQGZc",  
+authDomain:"v-tohnna-d8fd0.firebaseapp.com",  
+projectId:"v-tohnna-d8fd0",  
+storageBucket:"v-tohnna-d8fd0.appspot.com",  
+messagingSenderId:"929268606043",  
+appId:"1:929268606043:web:1b806754745934eaa30b7e"  
+};  
+  
+const app=initializeApp(firebaseConfig);  
+const db=getFirestore(app);  
+  
+/* USER LOGIN */  
+  
+let myID=localStorage.getItem("employeeID");  
+  
+if(!myID){  
+  
+myID=prompt("Enter Employee ID");  
+  
+localStorage.setItem("employeeID",myID);  
+  
+}  
+  
+document.getElementById("my-id").innerText=myID;  
+  
+/* ONLINE STATUS */  
+  
+setDoc(doc(db,"status",myID),{  
+online:true,  
+lastSeen:Date.now()  
+});  
+  
+window.addEventListener("beforeunload",()=>{  
+setDoc(doc(db,"status",myID),{  
+online:false,  
+lastSeen:Date.now()  
+});  
+});  
+  
+/* STATE */  
+  
+let employees={};  
+let selectedUser=null;  
+  
+/* ENCRYPTION */  
+  
+const SECRET="v-secure";  
+  
+function encrypt(t){  
+return CryptoJS.AES.encrypt(t,SECRET).toString();  
+}  
+  
+function decrypt(c){  
+try{  
+return CryptoJS.AES.decrypt(c,SECRET).toString(CryptoJS.enc.Utf8);  
+}catch{  
+return "";  
+}  
+}  
+  
+/* LOAD EMPLOYEES */  
+  
+async function loadEmployees(){  
+  
+const snap=await getDocs(collection(db,"employees"));  
+  
+snap.forEach(d=>{  
+employees[d.id]=d.data().name;  
+});  
+  
+renderEmployeeList();  
+  
+}  
+  
+loadEmployees();  
+  
+/* RENDER EMPLOYEE LIST */  
+  
+function renderEmployeeList(){  
+  
+const list=document.getElementById("chat-list");  
+  
+list.innerHTML="";  
+  
+Object.keys(employees).forEach(id=>{  
+  
+if(id===myID) return;  
+  
+const div=document.createElement("div");  
+  
+div.className="chat-item";  
+  
+div.innerHTML=`  
+<span>${employees[id]}</span>  
+<span id="online-${id}"></span>  
+`;  
+  
+div.onclick=()=>openChat(id);  
+  
+list.appendChild(div);  
+  
+/* ONLINE WATCH */  
+  
+onSnapshot(doc(db,"status",id),(s)=>{  
+  
+if(!s.exists()) return;  
+  
+const st=s.data();  
+  
+document.getElementById("online-"+id).innerHTML=  
+st.online?'<span class="online-dot"></span>':"";  
+  
+});  
+  
+});  
+  
+}  
+  
+/* OPEN CHAT */  
+  
+function openChat(user){  
+  
+selectedUser=user;  
+  
+document.getElementById("chat-header").innerText=  
+employees[user]+" ("+user+")";  
+  
+const q=query(collection(db,"messages"),orderBy("timestamp","asc"));  
+  
+onSnapshot(q,(snap)=>{  
+  
+messages.innerHTML="";  
+  
+snap.docs.forEach(d=>{  
+  
+const m=d.data();  
+  
+if(  
+(m.from===myID&&m.to===user)||  
+(m.from===user&&m.to===myID)  
+){  
+  
+const div=document.createElement("div");  
+  
+div.className="msg "+(m.from===myID?"sent":"received");  
+  
+let content="";  
+  
+if(m.file){  
+  
+content=`<a href="${m.file}" download="${m.filename}">📎 ${m.filename}</a>`;  
+  
+}else{  
+  
+content=decrypt(m.message);  
+  
+}  
+  
+div.innerHTML=`  
+<div>${content}</div>  
+<div class="time">${m.time}</div>  
+`;  
+  
+messages.appendChild(div);  
+  
+}  
+  
+});  
+  
+messages.scrollTop=messages.scrollHeight;  
+  
+});  
+  
+}  
+  
+/* SEND MESSAGE */  
+  
+window.sendMessage=async function(){  
+  
+const input=document.getElementById("msg-input");  
+  
+if(!selectedUser||!input.value.trim()) return;  
+  
+await addDoc(collection(db,"messages"),{  
+  
+from:myID,  
+to:selectedUser,  
+message:encrypt(input.value),  
+timestamp:Date.now(),  
+time:new Date().toLocaleTimeString()  
+  
+});  
+  
+input.value="";  
+  
+}  
+  
+/* FILE SHARE */  
+  
+file.onchange=async function(){  
+  
+const f=this.files[0];  
+  
+const reader=new FileReader();  
+  
+reader.onload=async function(){  
+  
+await addDoc(collection(db,"messages"),{  
+  
+from:myID,  
+to:selectedUser,  
+file:reader.result,  
+filename:f.name,  
+timestamp:Date.now(),  
+time:new Date().toLocaleTimeString()  
+  
+});  
+  
+};  
+  
+reader.readAsDataURL(f);  
+  
+}  
+  
+/* CLEAR CHAT */  
+  
+async function clearChat(){  
+  
+if(!selectedUser) return;  
+  
+if(!confirm("Delete this chat?")) return;  
+  
+const q=query(collection(db,"messages"));  
+  
+const snap=await getDocs(q);  
+  
+snap.forEach(async d=>{  
+  
+const m=d.data();  
+  
+if(  
+(m.from===myID&&m.to===selectedUser)||  
+(m.from===selectedUser&&m.to===myID)  
+){  
+  
+await deleteDoc(doc(db,"messages",d.id));  
+  
+}  
+  
+});  
+  
+}  
+  
+</script>  </body>  
+</html>  
