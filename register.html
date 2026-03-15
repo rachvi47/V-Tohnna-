@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V-Tohnna Register</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial;
+background:linear-gradient(135deg,#141e30,#243b55);
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+}
+
+.container{
+background:white;
+padding:35px;
+width:340px;
+border-radius:10px;
+box-shadow:0 10px 25px rgba(0,0,0,0.3);
+text-align:center;
+}
+
+h1{ margin-bottom:5px; }
+
+.company{
+font-size:14px;
+color:#666;
+margin-bottom:20px;
+}
+
+input,select{
+width:100%;
+padding:10px;
+margin:10px 0;
+border:1px solid #ccc;
+border-radius:5px;
+}
+
+button{
+width:100%;
+padding:10px;
+background:#28a745;
+border:none;
+color:white;
+font-size:16px;
+border-radius:5px;
+cursor:pointer;
+}
+
+button:hover{ background:#1e7e34; }
+
+a{
+display:block;
+margin-top:15px;
+font-size:14px;
+text-decoration:none;
+color:#007BFF;
+}
+
+#msg{ margin-top:10px; font-size:14px; }
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>V-Tohnna</h1>
+<div class="company">IAM User Registration</div>
+
+<input id="username" placeholder="Username">
+
+<select id="role">
+<option value="">Select Role</option>
+<option>Admin</option>
+<option>Developer</option>
+<option>User</option>
+</select>
+
+<button onclick="register()">Create User</button>
+
+<p style="font-size:13px;color:#777;">Default Password: <b>1234</b></p>
+
+<p id="msg"></p>
+
+<a href="dashboard.html">Back to Dashboard</a>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyDOmNu5GsxWLWGw6FACF40vEZ7-rkCQGZc",
+authDomain: "v-tohnna-d8fd0.firebaseapp.com",
+projectId: "v-tohnna-d8fd0",
+storageBucket: "v-tohnna-d8fd0.firebasestorage.app",
+messagingSenderId: "929268606043",
+appId: "1:929268606043:web:1b806754745934eaa30b7e",
+measurementId: "G-DB4SW4K8M2"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.register = async function(){
+
+let name = document.getElementById("username").value.trim()
+let role = document.getElementById("role").value
+let msg = document.getElementById("msg")
+
+if(name=="" || role==""){
+msg.innerHTML="Please fill all fields"
+msg.style.color="red"
+return
+}
+
+try{
+
+const snapshot = await getDocs(collection(db,"users"))
+let nextId = snapshot.size + 1
+let id = String(nextId).padStart(10,"0")
+let userId = id + " - " + name
+
+await addDoc(collection(db,"users"),{
+userid:userId,
+username:name.toLowerCase().replace(/\s/g,''),
+fullname:name,
+password:"1234",
+role:role
+})
+
+msg.innerHTML="User created. ID: " + userId
+msg.style.color="green"
+
+document.getElementById("username").value=""
+document.getElementById("role").value=""
+
+}catch(error){
+
+msg.innerHTML="Error creating user"
+msg.style.color="red"
+console.log(error)
+
+}
+
+}
+
+</script>
+
+</body>
+</html>

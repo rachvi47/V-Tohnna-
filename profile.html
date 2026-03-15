@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>V-Tohnna IAM Profile</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#eef2f7;
+margin:0;
+}
+
+.header{
+background:#1e2a38;
+color:white;
+padding:15px;
+display:flex;
+justify-content:space-between;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+padding:30px;
+}
+
+.box{
+background:white;
+padding:20px;
+border-radius:8px;
+box-shadow:0 3px 10px rgba(0,0,0,0.15);
+margin-bottom:20px;
+}
+
+input{
+width:100%;
+padding:8px;
+margin:6px 0;
+border:1px solid #ccc;
+border-radius:4px;
+}
+
+button{
+padding:10px;
+background:#007BFF;
+border:none;
+color:white;
+border-radius:5px;
+cursor:pointer;
+}
+
+button:hover{
+background:#0056b3;
+}
+
+.profileCard{
+text-align:center;
+}
+
+.profileCard img{
+width:120px;
+height:120px;
+border-radius:50%;
+object-fit:cover;
+margin-bottom:15px;
+border:3px solid #007BFF;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+
+<h2>V-Tohnna IAM Profile</h2>
+
+<div>
+User: <b id="username"></b> |
+Role: <b id="role"></b>
+</div>
+
+</div>
+
+<div class="container">
+
+<div class="box" id="adminPanel">
+
+<h3>Create / Update Profile</h3>
+
+<input id="empid" placeholder="Enter Employee ID" oninput="findUser()">
+
+<input id="name" placeholder="Employee Name" disabled>
+
+<input type="file" id="photo">
+
+<input id="idnum" placeholder="ID Number">
+<input id="phone" placeholder="Phone Number">
+<input id="email" placeholder="Email">
+<input id="grad" placeholder="Graduation">
+<input id="college" placeholder="College">
+<input id="marks" placeholder="Marks">
+
+<button onclick="saveProfile()">Save Profile</button>
+
+</div>
+
+<div class="box">
+
+<h3>Profile</h3>
+
+<div id="profileView" class="profileCard"></div>
+
+</div>
+
+<a href="dashboard.html">
+<button>Back to Dashboard</button>
+</a>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+/* FIREBASE */
+
+const firebaseConfig = {
+apiKey: "AIzaSyDOmNu5GsxWLWGw6FACF40vEZ7-rkCQGZc",
+authDomain: "v-tohnna-d8fd0.firebaseapp.com",
+projectId: "v-tohnna-d8fd0",
+storageBucket: "v-tohnna-d8fd0.firebasestorage.app",
+messagingSenderId: "929268606043",
+appId: "1:929268606043:web:1b806754745934eaa30b7e",
+measurementId: "G-DB4SW4K8M2"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* SESSION */
+
+let username = localStorage.getItem("username")
+let role = localStorage.getItem("role")
+
+if(!username){
+window.location.href="index.html"
+}
+
+document.getElementById("username").innerText = username
+document.getElementById("role").innerText = role
+
+if(role !== "Admin"){
+document.getElementById("adminPanel").style.display="none"
+}
+
+/* FIND USER */
+
+window.findUser = async function(){
+
+let empid = document.getElementById("empid").value.trim()
+
+const snapshot = await getDocs(collection(db,"users"))
+
+let name=""
+
+snapshot.forEach(doc=>{
+let u=doc.data()
+
+if(u.userid.split(" - ")[0]===empid){
+name=u.fullname
+}
+
+})
+
+document.getElementById("name").value=name
+
+}
+
+/* SAVE PROFILE */
+
+window.saveProfile = async function(){
+
+let profile={
+
+empid:document.getElementById("empid").value,
+name:document.getElementById("name").value,
+idnum:document.getElementById("idnum").value,
+phone:document.getElementById("phone").value,
+email:document.getElementById("email").value,
+graduation:document.getElementById("grad").value,
+college:document.getElementById("college").value,
+marks:document.getElementById("marks").value,
+username:username
+
+}
+
+await addDoc(collection(db,"profiles"),profile)
+
+alert("Profile saved")
+
+loadProfile()
+
+}
+
+/* LOAD PROFILE */
+
+async function loadProfile(){
+
+const snapshot = await getDocs(collection(db,"profiles"))
+
+let view=document.getElementById("profileView")
+
+snapshot.forEach(doc=>{
+
+let p=doc.data()
+
+if(p.username===username){
+
+view.innerHTML=`
+
+<b>ID:</b> ${p.idnum}<br>
+<b>Name:</b> ${p.name}<br>
+<b>Phone:</b> ${p.phone}<br>
+<b>Email:</b> ${p.email}<br>
+<b>Graduation:</b> ${p.graduation}<br>
+<b>College:</b> ${p.college}<br>
+<b>Marks:</b> ${p.marks}
+
+`
+
+}
+
+})
+
+}
+
+loadProfile()
+
+</script>
+
+</body>
+</html>

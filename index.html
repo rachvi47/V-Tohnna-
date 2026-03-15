@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>V-Tohnna IAM Login</title>
+
+<style>
+
+body{
+font-family:Arial,sans-serif;
+background:linear-gradient(135deg,#141e30,#243b55);
+height:100vh;
+margin:0;
+display:flex;
+justify-content:center;
+align-items:center;
+}
+
+.box{
+background:white;
+padding:35px;
+border-radius:10px;
+width:90%;
+max-width:340px;
+text-align:center;
+box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
+h2{margin-top:0;color:#333;}
+
+.subtitle{
+font-size:13px;
+color:#666;
+margin-bottom:20px;
+}
+
+input{
+width:100%;
+padding:10px;
+margin:10px 0;
+border-radius:5px;
+border:1px solid #ccc;
+font-size:14px;
+box-sizing:border-box;
+}
+
+#nameDisplay{
+background:#f4f6f9;
+cursor:not-allowed;
+}
+
+.password-row{
+position:relative;
+}
+
+.toggle{
+position:absolute;
+right:10px;
+top:50%;
+transform:translateY(-50%);
+cursor:pointer;
+font-size:12px;
+color:#007BFF;
+}
+
+button{
+width:100%;
+padding:10px;
+margin-top:10px;
+background:#007BFF;
+border:none;
+color:white;
+font-size:15px;
+border-radius:5px;
+cursor:pointer;
+}
+
+button:hover{background:#0056b3;}
+
+#msg{
+margin-top:10px;
+font-size:13px;
+color:red;
+min-height:15px;
+}
+
+.footer{
+margin-top:15px;
+font-size:12px;
+color:#777;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>V-Tohnna IAM</h2>
+
+<div class="subtitle">Secure Identity Access</div>
+
+<input id="userid" placeholder="Enter Employee ID">
+
+<input id="nameDisplay" placeholder="Employee Name" disabled>
+
+<div class="password-row">
+
+<input id="password" type="password" placeholder="Password">
+
+<span class="toggle" onclick="togglePassword()">Show</span>
+
+</div>
+
+<button onclick="login()">Login</button>
+
+<p id="msg"></p>
+
+<div class="footer">Secure IAM Access Portal</div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+/* FIREBASE CONFIG */
+
+const firebaseConfig = {
+apiKey: "AIzaSyDOmNu5GsxWLWGw6FACF40vEZ7-rkCQGZc",
+authDomain: "v-tohnna-d8fd0.firebaseapp.com",
+projectId: "v-tohnna-d8fd0",
+storageBucket: "v-tohnna-d8fd0.firebasestorage.app",
+messagingSenderId: "929268606043",
+appId: "1:929268606043:web:1b806754745934eaa30b7e",
+measurementId: "G-DB4SW4K8M2"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let attempts = 0
+
+/* FIND USER NAME */
+
+document.getElementById("userid").addEventListener("input", findUser)
+
+async function findUser(){
+
+let id = document.getElementById("userid").value.trim()
+
+const snapshot = await getDocs(collection(db,"users"))
+
+let name=""
+
+snapshot.forEach((doc)=>{
+
+let user = doc.data()
+
+if(user.userid.split(" - ")[0] === id){
+name = user.fullname
+}
+
+})
+
+document.getElementById("nameDisplay").value = name
+
+}
+
+/* LOGIN */
+
+window.login = async function(){
+
+let id = document.getElementById("userid").value.trim()
+let password = document.getElementById("password").value.trim()
+let msg = document.getElementById("msg")
+
+if(!id || !password){
+
+msg.innerText="Enter Employee ID and Password"
+return
+
+}
+
+const snapshot = await getDocs(collection(db,"users"))
+
+let foundUser=null
+
+snapshot.forEach((doc)=>{
+
+let user = doc.data()
+
+if(user.userid.split(" - ")[0] === id && user.password === password){
+
+foundUser=user
+
+}
+
+})
+
+if(!foundUser){
+
+attempts++
+msg.innerText="Invalid Employee ID or Password"
+
+if(attempts>=3){
+lockPassword()
+}
+
+return
+
+}
+
+/* LOGIN SUCCESS */
+
+localStorage.setItem("username", foundUser.username)
+localStorage.setItem("role", foundUser.role)
+localStorage.setItem("userid", foundUser.userid)
+
+window.location.href="dashboard.html"
+
+}
+
+/* LOCK PASSWORD */
+
+function lockPassword(){
+
+let pass=document.getElementById("password")
+let msg=document.getElementById("msg")
+
+pass.disabled=true
+
+let timeLeft=30
+
+let timer=setInterval(()=>{
+
+timeLeft--
+
+msg.innerText="Too many attempts. Try again in "+timeLeft+" seconds"
+
+if(timeLeft<=0){
+
+clearInterval(timer)
+
+pass.disabled=false
+attempts=0
+
+msg.innerText="Try again"
+
+}
+
+},1000)
+
+}
+
+/* PASSWORD TOGGLE */
+
+window.togglePassword=function(){
+
+let p=document.getElementById("password")
+let btn=document.querySelector(".toggle")
+
+if(p.type==="password"){
+
+p.type="text"
+btn.innerText="Hide"
+
+}else{
+
+p.type="password"
+btn.innerText="Show"
+
+}
+
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,332 @@
+<!DOCTYPE html><html><head>  <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>V-Tohnna IAM Dashboard</title><style>  body{
+font-family:Arial;
+background:#eef2f7;
+margin:0;
+}
+
+.header{
+background:#1e2a38;
+color:white;
+padding:15px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.container{
+padding:30px;
+max-width:900px;
+margin:auto;
+}
+
+.welcome{
+background:white;
+padding:20px;
+border-radius:8px;
+box-shadow:0 3px 10px rgba(0,0,0,0.1);
+margin-bottom:20px;
+}
+
+.cards{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+gap:15px;
+margin-bottom:25px;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:8px;
+box-shadow:0 3px 10px rgba(0,0,0,0.1);
+text-align:center;
+}
+
+.card h3{
+margin:0;
+font-size:28px;
+color:#007BFF;
+}
+
+.actions{
+background:white;
+padding:20px;
+border-radius:8px;
+box-shadow:0 3px 10px rgba(0,0,0,0.1);
+margin-bottom:20px;
+}
+
+button{
+padding:10px 15px;
+margin:5px;
+border:none;
+border-radius:5px;
+background:#007BFF;
+color:white;
+cursor:pointer;
+}
+
+button:hover{
+background:#0056b3;
+}
+
+.logout{
+background:#ff4d4d;
+}
+
+.logout:hover{
+background:#cc0000;
+}
+
+/* Announcement */
+
+.announcement{
+background:white;
+padding:20px;
+border-radius:8px;
+box-shadow:0 3px 10px rgba(0,0,0,0.1);
+}
+
+.announcement textarea{
+width:100%;
+padding:10px;
+margin-top:10px;
+border-radius:5px;
+border:1px solid #ccc;
+}
+
+.announcement-list{
+margin-top:15px;
+}
+
+.announcement-item{
+background:#f4f6fb;
+padding:10px;
+border-radius:5px;
+margin-bottom:8px;
+font-size:14px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+</style></head><body><div class="header">
+
+<h2>V-Tohnna IAM</h2><div>    
+User: <b id="username"></b> |    
+Role: <b id="role"></b>    
+</div>    
+</div><div class="container"><div class="welcome">    
+<h3>Welcome to V-Tohnna IAM Dashboard</h3>    
+<p>Manage your account and system access.</p>    
+</div><!-- Admin Statistics --><div id="statsSection"><div class="cards"><div class="card">    
+<h3 id="totalUsers">0</h3>    
+<p>Total Users</p>    
+</div><div class="card">    
+<h3 id="adminCount">0</h3>    
+<p>Admins</p>    
+</div><div class="card">    
+<h3 id="devCount">0</h3>    
+<p>Developers</p>    
+</div><div class="card">    
+<h3 id="userCount">0</h3>    
+<p>Users</p>    
+</div></div></div><div class="actions"><h3>Actions</h3><div id="adminActions"></div><a href="change-password.html">    
+<button>Change Password</button>    
+</a><a href="messages.html">    
+<button>Messages</button>    
+</a><a href="profile.html">    
+<button>My Profile</button>    
+</a><button class="logout" onclick="logout()">Logout</button>  
+</div>  
+  <!-- Announcement Section -->  
+  <div class="announcement"><h3>📢 Announcements</h3>  
+    <div id="adminAnnouncementPanel"></div>  
+  <div class="announcement-list" id="announcementList"></div></div></div>  
+  <script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+/* FIREBASE CONFIG */
+
+const firebaseConfig = {
+apiKey: "AIzaSyDOmNu5GsxWLWGw6FACF40vEZ7-rkCQGZc",
+authDomain: "v-tohnna-d8fd0.firebaseapp.com",
+projectId: "v-tohnna-d8fd0",
+storageBucket: "v-tohnna-d8fd0.firebasestorage.app",
+messagingSenderId: "929268606043",
+appId: "1:929268606043:web:1b806754745934eaa30b7e",
+measurementId: "G-DB4SW4K8M2"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* SESSION */
+
+let username = localStorage.getItem("username")
+let role = localStorage.getItem("role")
+
+if(!username){
+window.location.href="index.html"
+}
+
+document.getElementById("username").innerText = username
+document.getElementById("role").innerText = role
+
+
+/* ADMIN STATISTICS */
+
+if(role !== "Admin"){
+document.getElementById("statsSection").style.display="none"
+}
+
+async function loadStats(){
+
+const snapshot = await getDocs(collection(db,"users"))
+
+let total=0
+let admin=0
+let dev=0
+let normal=0
+
+snapshot.forEach(doc=>{
+let u=doc.data()
+
+total++
+
+if(u.role==="Admin") admin++
+if(u.role==="Developer") dev++
+if(u.role==="User") normal++
+
+})
+
+document.getElementById("totalUsers").innerText=total
+document.getElementById("adminCount").innerText=admin
+document.getElementById("devCount").innerText=dev
+document.getElementById("userCount").innerText=normal
+
+}
+
+if(role==="Admin"){
+loadStats()
+}
+
+
+/* ADMIN ACTIONS */
+
+let adminPanel=document.getElementById("adminActions")
+
+if(role==="Admin"){
+
+adminPanel.innerHTML=`
+
+<a href="users.html">
+<button>Manage Users</button>
+</a>
+
+<a href="register.html">
+<button>Register User</button>
+</a>
+
+`
+
+}
+
+
+/* ANNOUNCEMENTS */
+
+async function loadAnnouncements(){
+
+let list=document.getElementById("announcementList")
+
+list.innerHTML=""
+
+const snapshot = await getDocs(collection(db,"announcements"))
+
+snapshot.forEach(docSnap=>{
+
+let a = docSnap.data()
+
+let div=document.createElement("div")
+div.className="announcement-item"
+
+div.innerHTML=`
+<div>
+<b>${a.message}</b><br>
+<small>Posted by: ${a.admin} | ${a.time}</small>
+</div>
+${role==="Admin" ? `<button onclick="deleteAnnouncement('${docSnap.id}')">Delete</button>` : ""}
+`
+
+list.appendChild(div)
+
+})
+
+}
+
+
+/* ADMIN ANNOUNCEMENT PANEL */
+
+if(role==="Admin"){
+
+document.getElementById("adminAnnouncementPanel").innerHTML=`
+
+<textarea id="announcementText" placeholder="Write announcement..."></textarea>
+<button onclick="addAnnouncement()">Post Announcement</button>
+
+`
+
+}
+
+
+/* ADD ANNOUNCEMENT */
+
+window.addAnnouncement = async function(){
+
+let text=document.getElementById("announcementText").value.trim()
+
+if(text==="") return
+
+await addDoc(collection(db,"announcements"),{
+
+message:text,
+admin:username,
+time:new Date().toLocaleString()
+
+})
+
+document.getElementById("announcementText").value=""
+
+loadAnnouncements()
+
+}
+
+
+/* DELETE ANNOUNCEMENT */
+
+window.deleteAnnouncement = async function(id){
+
+await deleteDoc(doc(db,"announcements",id))
+
+loadAnnouncements()
+
+}
+
+
+/* LOGOUT */
+
+window.logout=function(){
+
+localStorage.removeItem("username")
+localStorage.removeItem("role")
+
+window.location.href="index.html"
+
+}
+
+loadAnnouncements()
+
+</script>
+</body>  </html>    

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>V-Tohnna User Management</title>
+
+<style>
+
+body {
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+background: #f4f6f9;
+padding: 40px;
+text-align: center;
+}
+
+.box {
+background: white;
+padding: 30px;
+max-width: 800px;
+margin: auto;
+border-radius: 8px;
+box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+button {
+padding: 8px 12px;
+margin: 3px;
+border: none;
+color: white;
+border-radius: 4px;
+cursor: pointer;
+font-size: 14px;
+}
+
+.delete { background: #dc3545; }
+.reset { background: #ff9800; }
+
+.register {
+background: #28a745;
+margin-bottom: 20px;
+text-decoration: none;
+display: inline-block;
+}
+
+table {
+width: 100%;
+border-collapse: collapse;
+margin-top: 10px;
+}
+
+th, td {
+border: 1px solid #eee;
+padding: 12px;
+text-align: left;
+}
+
+th {
+background-color: #f8f9fa;
+color: #333;
+}
+
+tr:hover { background-color: #fcfcfc; }
+
+.dashboard-link {
+margin-top: 20px;
+display: block;
+color: #6610f2;
+text-decoration: none;
+font-weight: bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>V-Tohnna IAM - Users</h2>
+
+<a href="register.html" class="register">
+<button style="background:transparent;padding:0;">Register New User</button>
+</a>
+
+<table>
+
+<thead>
+
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Role</th>
+<th>Action</th>
+</tr>
+
+</thead>
+
+<tbody id="userTableBody"></tbody>
+
+</table>
+
+<a href="dashboard.html" class="dashboard-link">Back to Dashboard</a>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getFirestore, collection, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+/* FIREBASE CONFIG */
+
+const firebaseConfig = {
+apiKey: "AIzaSyDOmNu5GsxWLWGw6FACF40vEZ7-rkCQGZc",
+authDomain: "v-tohnna-d8fd0.firebaseapp.com",
+projectId: "v-tohnna-d8fd0",
+storageBucket: "v-tohnna-d8fd0.firebasestorage.app",
+messagingSenderId: "929268606043",
+appId: "1:929268606043:web:1b806754745934eaa30b7e",
+measurementId: "G-DB4SW4K8M2"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* DISPLAY USERS */
+
+async function displayUsers(){
+
+const tableBody = document.getElementById("userTableBody")
+
+tableBody.innerHTML=""
+
+const snapshot = await getDocs(collection(db,"users"))
+
+if(snapshot.empty){
+
+tableBody.innerHTML="<tr><td colspan='4'>No users found</td></tr>"
+return
+
+}
+
+snapshot.forEach((docSnap)=>{
+
+let user = docSnap.data()
+let id = docSnap.id
+
+let row = `
+<tr>
+
+<td>${user.userid}</td>
+
+<td>${user.fullname}</td>
+
+<td>${user.role}</td>
+
+<td>
+
+<button class="reset" onclick="resetPassword('${id}','${user.role}','${user.username}')">Reset PW</button>
+
+<button class="delete" onclick="deleteUser('${id}','${user.fullname}')">Delete</button>
+
+</td>
+
+</tr>
+`
+
+tableBody.innerHTML += row
+
+})
+
+}
+
+/* DELETE USER */
+
+window.deleteUser = async function(id,name){
+
+if(confirm("Delete user "+name+" ?")){
+
+await deleteDoc(doc(db,"users",id))
+
+alert("User deleted")
+
+displayUsers()
+
+}
+
+}
+
+/* RESET PASSWORD */
+
+window.resetPassword = async function(id,role,username){
+
+let newPass = role==="Admin" ? "7890" : "1234"
+
+if(confirm("Reset password for "+username+" ?")){
+
+await updateDoc(doc(db,"users",id),{
+password:newPass
+})
+
+alert("Password reset to "+newPass)
+
+}
+
+}
+
+displayUsers()
+
+</script>
+
+</body>
+</html>
