@@ -84,7 +84,7 @@ color:#007BFF;
 <option>User</option>
 </select>
 
-<button onclick="register()">Create User</button>
+<button onclick="registerUser()">Create User</button>
 
 <p style="font-size:13px;color:#777;">Default Password: <b>1234</b></p>
 
@@ -112,7 +112,7 @@ measurementId: "G-DB4SW4K8M2"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-window.register = async function(){
+window.registerUser = async function(){
 
 let name = document.getElementById("username").value.trim()
 let role = document.getElementById("role").value
@@ -127,19 +127,45 @@ return
 try{
 
 const snapshot = await getDocs(collection(db,"users"))
-let nextId = snapshot.size + 1
+
+let usedIds = []
+
+snapshot.forEach(doc=>{
+let data = doc.data()
+
+if(data.userid){
+
+let num = parseInt(data.userid.split(" - ")[0])
+
+if(!isNaN(num)){
+usedIds.push(num)
+}
+
+}
+
+})
+
+let nextId = 1
+
+while(usedIds.includes(nextId)){
+nextId++
+}
+
 let id = String(nextId).padStart(10,"0")
+
 let userId = id + " - " + name
 
 await addDoc(collection(db,"users"),{
+
 userid:userId,
 username:name.toLowerCase().replace(/\s/g,''),
 fullname:name,
 password:"1234",
 role:role
+
 })
 
-msg.innerHTML="User created. ID: " + userId
+msg.innerHTML="User created successfully.<br>ID: " + userId
 msg.style.color="green"
 
 document.getElementById("username").value=""
