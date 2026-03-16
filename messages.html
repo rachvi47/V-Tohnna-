@@ -1,355 +1,553 @@
 
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V-Tohnna Secure Chat</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-<style>
-:root {
-    --primary: #007BFF;
-    --whatsapp-green: #25d366;
-    --bg-gray: #f0f2f5;
-    --dark-blue: #1e2a38;
-}
-body {
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-    background: var(--bg-gray);
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
+<title>V-Tohnna Secure Chat</title><script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script><style>
+
+:root{
+--primary:#007BFF;
+--green:#25d366;
+--bg:#f0f2f5;
+--dark:#1e2a38;
 }
 
-/* Header */
-.header {
-    background: var(--dark-blue);
-    color: white;
-    padding: 12px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 56px;
+body{
+margin:0;
+font-family:Segoe UI;
+background:var(--bg);
+height:100vh;
+display:flex;
+flex-direction:column;
 }
 
-/* Main Layout */
-.main-container {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
+/* HEADER */
+
+.header{
+background:var(--dark);
+color:white;
+padding:10px 15px;
+display:flex;
+justify-content:space-between;
 }
 
-/* Sidebar */
-.sidebar {
-    width: 250px; /* reduced width */
-    background: white;
-    border-right: 1px solid #ddd;
-    display: flex;
-    flex-direction: column;
-}
-.sidebar-header {
-    padding: 10px;
-    background: #f8f9fa;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.chat-list {
-    flex: 1;
-    overflow-y: auto;
-}
-.chat-item {
-    padding: 12px;
-    border-bottom: 1px solid #f1f1f1;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-}
-.chat-item:hover { background: #f5f6f7; }
-.chat-item.active { background: #e7f3ff; }
-.emp-id-label { font-size: 11px; color: var(--primary); font-weight: bold; }
-.unread-dot {
-    background: var(--whatsapp-green);
-    color: white;
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 10px;
-    position: absolute;
-    right: 12px;
-    top: 12px;
+/* LAYOUT */
+
+.main{
+flex:1;
+display:flex;
+overflow:hidden;
 }
 
-/* Chat Window */
-.chat-window {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background: #e5ddd5;
-}
-#chat-active {
-    display: none;
-    flex-direction: column;
-    height: 100%;
-}
-#active-title {
-    padding: 12px;
-    background: #ededed;
-    font-weight: bold;
-    border-bottom: 1px solid #ccc;
+/* SIDEBAR */
+
+.sidebar{
+width:260px;
+background:white;
+border-right:1px solid #ddd;
+display:flex;
+flex-direction:column;
 }
 
-/* Messages */
-.messages-area {
-    flex: 1;
-    padding: 15px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    background: #e5ddd5;
-}
-.msg {
-    max-width: 70%;
-    padding: 10px;
-    border-radius: 8px;
-    font-size: 14px;
-    position: relative;
-}
-.msg.sent { align-self: flex-end; background: #dcf8c6; }
-.msg.received { align-self: flex-start; background: white; }
-.time { font-size: 10px; color: #888; text-align: right; margin-top: 4px; }
-
-/* Input area only inside chat */
-.input-area {
-    padding: 10px;
-    background: #f0f0f0;
-    display: flex;
-    gap: 10px;
-    border-top: 1px solid #ccc;
-}
-input#msg-input {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 20px;
-    outline: none;
+.sidebar-header{
+padding:10px;
+display:flex;
+justify-content:space-between;
+border-bottom:1px solid #eee;
 }
 
-/* Placeholder */
-#chat-placeholder {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #888;
+.search{
+padding:8px;
+border:none;
+border-bottom:1px solid #eee;
 }
 
-/* Modal / Search */
-#search-modal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 100;
-    align-items: center; justify-content: center;
+.chat-list{
+flex:1;
+overflow-y:auto;
 }
-.modal-content {
-    background: white;
-    width: 90%; max-width: 400px;
-    border-radius: 10px;
-    padding: 20px;
-    max-height: 80vh;
-    display: flex;
-    flex-direction: column;
+
+.chat-item{
+padding:12px;
+border-bottom:1px solid #f1f1f1;
+cursor:pointer;
+position:relative;
 }
-.user-search-input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    margin-bottom: 10px;
-    box-sizing: border-box;
+
+.chat-item:hover{
+background:#f5f5f5;
 }
-.user-result-list {
-    flex: 1;
-    overflow-y: auto;
-    border-top: 1px solid #eee;
+
+.unread{
+position:absolute;
+right:10px;
+top:10px;
+background:red;
+color:white;
+font-size:10px;
+padding:2px 6px;
+border-radius:10px;
 }
-.user-result-item {
-    padding: 10px;
-    cursor: pointer;
-    border-bottom: 1px solid #eee;
+
+/* CHAT AREA */
+
+.chat{
+flex:1;
+display:flex;
+flex-direction:column;
+background:#e5ddd5;
 }
-.user-result-item:hover { background: #f0f2f5; }
 
-/* Buttons */
-.btn-new { background: var(--primary); color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; }
-
-/* Mobile tweaks */
-@media (max-width: 768px) {
-    .sidebar { width: 200px; }
-    .messages-area { padding-bottom: 60px; }
+.chat-header{
+background:#ededed;
+padding:10px;
+display:flex;
+justify-content:space-between;
 }
-</style>
-</head>
-<body>
 
-<div class="header">
-    <b>V-Tohnna Secure</b>
-    <div id="user-info">ID: <span id="my-id"></span> | <span id="my-name"></span></div>
-</div>
+.messages{
+flex:1;
+padding:15px;
+overflow-y:auto;
+display:flex;
+flex-direction:column;
+gap:8px;
+}
 
-<div class="main-container">
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <span>Recent Chats</span>
-            <button class="btn-new" onclick="toggleModal(true)">+ New Chat</button>
-        </div>
-        <div class="chat-list" id="chat-list"></div>
-    </div>
+.msg{
+max-width:70%;
+padding:10px;
+border-radius:8px;
+font-size:14px;
+}
 
-    <div class="chat-window">
-        <div id="chat-active">
-            <div id="active-title"></div>
-            <div class="messages-area" id="messages-area"></div>
-            <div class="input-area">
-                <input type="text" id="msg-input" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendMessage()">
-                <button onclick="sendMessage()">Send</button>
-            </div>
-        </div>
-        <div id="chat-placeholder">Select a chat to start</div>
-    </div>
-</div>
+.sent{
+align-self:flex-end;
+background:#dcf8c6;
+}
 
-<div id="search-modal">
-    <div class="modal-content">
-        <h3>Start New Chat</h3>
-        <input type="text" class="user-search-input" id="user-search" placeholder="Search Employee ID or Name..." oninput="filterUsers()">
-        <div class="user-result-list" id="user-results"></div>
-        <button onclick="toggleModal(false)">Cancel</button>
-    </div>
-</div>
+.received{
+align-self:flex-start;
+background:white;
+}
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getFirestore, collection, query, onSnapshot, addDoc, orderBy, updateDoc, doc, getDocs } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+.time{
+font-size:10px;
+color:#777;
+text-align:right;
+}
 
-const firebaseConfig = {
-    apiKey: "AIzaSyDOmNu5GsxWLWGw6FACF40vEZ7-rkCQGZc",
-    authDomain: "v-tohnna-d8fd0.firebaseapp.com",
-    projectId: "v-tohnna-d8fd0",
-    storageBucket: "v-tohnna-d8fd0.firebasestorage.app",
-    messagingSenderId: "929268606043",
-    appId: "1:929268606043:web:1b806754745934eaa30b7e"
+/* INPUT */
+
+.input{
+display:flex;
+padding:10px;
+gap:6px;
+background:#f0f0f0;
+}
+
+#msg{
+flex:1;
+padding:10px;
+border-radius:20px;
+border:1px solid #ccc;
+}
+
+.send{
+background:var(--primary);
+color:white;
+border:none;
+padding:8px 15px;
+border-radius:20px;
+cursor:pointer;
+}
+
+.file{
+background:var(--green);
+color:white;
+border:none;
+padding:8px 10px;
+border-radius:20px;
+cursor:pointer;
+}
+
+/* NEW CHAT MODAL */
+
+.modal{
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.5);
+align-items:center;
+justify-content:center;
+}
+
+.modal-box{
+background:white;
+width:350px;
+padding:20px;
+border-radius:8px;
+max-height:80vh;
+overflow:auto;
+}
+
+/* MOBILE */
+
+@media(max-width:700px){
+.sidebar{width:200px}
+}
+
+</style></head><body><div class="header">
+<b>V-Tohnna Secure</b>
+<div>ID: <span id="myid"></span> | <span id="myname"></span></div>
+</div><div class="main"><div class="sidebar"><div class="sidebar-header">
+<span>Chats</span>
+<button onclick="openNewChat()">+ New</button>
+</div><input class="search" id="search" placeholder="Search chats"><div class="chat-list" id="chatlist"></div></div><div class="chat"><div class="chat-header">
+<div id="chatname">Select Chat</div>
+<button onclick="clearChat()">Clear</button>
+</div><div class="messages" id="messages"></div><div class="input"><input type="file" id="file" hidden>
+<button class="file" onclick="file.click()">📎</button><input id="msg" placeholder="Type message">
+<button class="send" onclick="send()">Send</button></div></div></div><!-- NEW CHAT MODAL --><div class="modal" id="newChatModal"><div class="modal-box"><h3>Start New Chat</h3><input id="userSearch" placeholder="Search name or ID" style="width:100%;padding:8px;margin-bottom:10px"><div id="userList"></div><button onclick="closeNewChat()">Close</button>
+
+</div></div><script type="module">
+
+import {initializeApp} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+
+import {
+getFirestore,
+collection,
+addDoc,
+query,
+orderBy,
+onSnapshot,
+getDocs,
+doc,
+updateDoc,
+deleteDoc
+}
+from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+/* FIREBASE */
+
+const firebaseConfig={
+apiKey:"AIzaSyDOmNu5GsxWLWGw6FACF40vEZ7-rkCQGZc",
+authDomain:"v-tohnna-d8fd0.firebaseapp.com",
+projectId:"v-tohnna-d8fd0"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const SECRET_KEY = "v-secure-123";
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
 
-let myFullID = localStorage.getItem("userid");
-let myName = localStorage.getItem("username");
-let selectedUser = null;
-let unsubMessages = null;
-let allUsers = [];
+/* SECURITY */
 
-document.getElementById("my-id").innerText = myFullID?.split(" - ")[0];
-document.getElementById("my-name").innerText = myName;
+const SECRET="v-secure";
 
-function init() {
-    const q = query(collection(db, "messages"), orderBy("timestamp", "desc"));
-    onSnapshot(q, snapshot => {
-        const list = document.getElementById("chat-list");
-        const recentMap = new Map();
-        snapshot.docs.forEach(d => {
-            const m = d.data();
-            const other = (m.from === myFullID) ? m.to : m.from;
-            if (!recentMap.has(other)) recentMap.set(other, { msg: decrypt(m.message), id: other });
-        });
+/* USER INFO */
 
-        list.innerHTML = "";
-        recentMap.forEach((data, userId) => {
-            const div = document.createElement("div");
-            div.className = `chat-item ${selectedUser === userId ? 'active' : ''}`;
-            div.innerHTML = `
-                <span class="emp-id-label">${userId.split(" - ")[0]}</span>
-                <b>${userId.split(" - ")[1]}</b>
-                <span class="last-msg">${data.msg}</span>
-            `;
-            div.onclick = () => openChat(userId);
-            list.appendChild(div);
-        });
-    });
-    loadAllUsers();
+let myID=localStorage.getItem("userid");
+let myName=localStorage.getItem("username");
+
+let selected=null;
+let allUsers=[];
+
+document.getElementById("myid").innerText=myID?.split(" - ")[0];
+document.getElementById("myname").innerText=myName;
+
+/* ENCRYPTION */
+
+function encrypt(t){
+return CryptoJS.AES.encrypt(t,SECRET).toString();
 }
 
-async function loadAllUsers() {
-    const snap = await getDocs(collection(db, "users"));
-    allUsers = snap.docs.map(d => d.data()).filter(u => u.userid !== myFullID);
+function decrypt(c){
+try{
+return CryptoJS.AES.decrypt(c,SECRET).toString(CryptoJS.enc.Utf8);
+}catch{
+return "";
+}
 }
 
-window.toggleModal = (show) => {
-    document.getElementById("search-modal").style.display = show ? "flex" : "none";
-    if(show) filterUsers();
+/* LOAD RECENT CHATS */
+
+function loadChats(){
+
+const q=query(collection(db,"messages"),orderBy("timestamp","desc"));
+
+onSnapshot(q,snap=>{
+
+let map=new Map();
+
+snap.docs.forEach(d=>{
+
+let m=d.data();
+
+if(m.from!==myID && m.to!==myID) return;
+
+let other=m.from===myID?m.to:m.from;
+
+if(!map.has(other)){
+map.set(other,{msg:m.message,read:m.read});
 }
 
-window.filterUsers = () => {
-    const term = document.getElementById("user-search").value.toLowerCase();
-    const results = document.getElementById("user-results");
-    results.innerHTML = "";
-    allUsers.filter(u => u.userid.toLowerCase().includes(term) || u.fullname.toLowerCase().includes(term))
-        .forEach(u => {
-            const div = document.createElement("div");
-            div.className = "user-result-item";
-            div.innerHTML = `<small>${u.userid.split(" - ")[0]}</small><br><b>${u.fullname}</b>`;
-            div.onclick = () => { openChat(u.userid); toggleModal(false); };
-            results.appendChild(div);
-        });
+});
+
+const list=document.getElementById("chatlist");
+list.innerHTML="";
+
+map.forEach((v,k)=>{
+
+let div=document.createElement("div");
+div.className="chat-item";
+
+div.innerHTML=`
+<b>${k.split(" - ")[1]}</b>
+<br>
+<small>${decrypt(v.msg)}</small>
+${!v.read?'<span class="unread">!</span>':""}
+`;
+
+div.onclick=()=>openChat(k);
+
+list.appendChild(div);
+
+});
+
+});
+
 }
 
-function openChat(userId) {
-    selectedUser = userId;
-    document.getElementById("chat-placeholder").style.display = "none";
-    document.getElementById("chat-active").style.display = "flex";
-    document.getElementById("active-title").innerText = userId;
+/* OPEN CHAT */
 
-    if(unsubMessages) unsubMessages();
-    const q = query(collection(db, "messages"), orderBy("timestamp", "asc"));
-    unsubMessages = onSnapshot(q, snapshot => {
-        const area = document.getElementById("messages-area");
-        area.innerHTML = "";
-        snapshot.docs.forEach(d => {
-            const m = d.data();
-            if ((m.from === myFullID && m.to === userId) || (m.from === userId && m.to === myFullID)) {
-                if (m.to === myFullID && !m.read) updateDoc(doc(db, "messages", d.id), { read: true });
-                const div = document.createElement("div");
-                div.className = `msg ${m.from === myFullID ? 'sent' : 'received'}`;
-                div.innerHTML = `<div>${decrypt(m.message)}</div><div class="time">${m.time}</div>`;
-                area.appendChild(div);
-            }
-        });
-        area.scrollTop = area.scrollHeight;
-    });
+function openChat(user){
+
+selected=user;
+
+document.getElementById("chatname").innerText=user;
+
+const q=query(collection(db,"messages"),orderBy("timestamp","asc"));
+
+onSnapshot(q,snap=>{
+
+const area=document.getElementById("messages");
+area.innerHTML="";
+
+snap.docs.forEach(d=>{
+
+let m=d.data();
+
+if((m.from===myID && m.to===user)||(m.from===user && m.to===myID)){
+
+let div=document.createElement("div");
+
+div.className="msg "+(m.from===myID?"sent":"received");
+
+let content=m.file
+? `<a href="${m.file}" download>${m.filename}</a>`
+: decrypt(m.message);
+
+div.innerHTML=`${content}<div class="time">${m.time}</div>`;
+
+/* MESSAGE ACTION */
+
+div.oncontextmenu=(e)=>{
+
+e.preventDefault();
+
+let choice=confirm("Delete this message?\nOK = Delete\nCancel = Edit");
+
+if(choice){
+
+deleteDoc(doc(db,"messages",d.id));
+
+}else{
+
+let newMsg=prompt("Edit Message",decrypt(m.message));
+
+if(newMsg){
+
+updateDoc(doc(db,"messages",d.id),{
+message:encrypt(newMsg)
+});
+
 }
 
-window.sendMessage = async function() {
-    const inp = document.getElementById("msg-input");
-    if(!selectedUser || !inp.value.trim()) return;
-    await addDoc(collection(db, "messages"), {
-        from: myFullID, to: selectedUser, message: encrypt(inp.value.trim()),
-        time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
-        timestamp: Date.now(), read: false
-    });
-    inp.value = "";
 }
 
-function encrypt(t) { return CryptoJS.AES.encrypt(t, SECRET_KEY).toString(); }
-function decrypt(c) { try { return CryptoJS.AES.decrypt(c, SECRET_KEY).toString(CryptoJS.enc.Utf8); } catch { return "---"; } }
+};
 
-init();
-</script>
-</body>
+area.appendChild(div);
+
+}
+
+});
+
+area.scrollTop=area.scrollHeight;
+
+});
+
+}
+
+/* SEND MESSAGE */
+
+window.send=async function(){
+
+let inp=document.getElementById("msg");
+
+if(!selected||!inp.value.trim()) return;
+
+await addDoc(collection(db,"messages"),{
+from:myID,
+to:selected,
+message:encrypt(inp.value),
+timestamp:Date.now(),
+time:new Date().toLocaleTimeString(),
+read:false
+});
+
+inp.value="";
+
+}
+
+/* FILE SEND */
+
+file.onchange=async function(){
+
+let f=this.files[0];
+
+if(!f||!selected) return;
+
+let reader=new FileReader();
+
+reader.onload=async e=>{
+
+await addDoc(collection(db,"messages"),{
+from:myID,
+to:selected,
+file:e.target.result,
+filename:f.name,
+timestamp:Date.now(),
+time:new Date().toLocaleTimeString()
+});
+
+};
+
+reader.readAsDataURL(f);
+
+}
+
+/* CLEAR CHAT */
+
+window.clearChat=async function(){
+
+if(!confirm("Clear chat?")) return;
+
+const snap=await getDocs(collection(db,"messages"));
+
+snap.forEach(async d=>{
+
+let m=d.data();
+
+if(
+(m.from===myID && m.to===selected) ||
+(m.from===selected && m.to===myID)
+){
+
+await deleteDoc(doc(db,"messages",d.id));
+
+}
+
+});
+
+}
+
+/* LOAD USERS */
+
+async function loadUsers(){
+
+const snap=await getDocs(collection(db,"users"));
+
+allUsers=snap.docs
+.map(d=>d.data())
+.filter(u=>u.userid!==myID);
+
+renderUserList();
+
+}
+
+/* RENDER USER LIST */
+
+function renderUserList(filter=""){
+
+const list=document.getElementById("userList");
+
+list.innerHTML="";
+
+allUsers
+.filter(u=>
+u.userid.toLowerCase().includes(filter) ||
+u.fullname.toLowerCase().includes(filter)
+)
+
+.forEach(u=>{
+
+let div=document.createElement("div");
+
+div.style.padding="10px";
+div.style.borderBottom="1px solid #eee";
+div.style.cursor="pointer";
+
+div.innerHTML=`
+<b>${u.fullname}</b>
+<br>
+<small>${u.userid}</small>
+`;
+
+div.onclick=()=>{
+
+openChat(u.userid);
+
+closeNewChat();
+
+};
+
+list.appendChild(div);
+
+});
+
+}
+
+/* USER SEARCH */
+
+document.getElementById("userSearch").addEventListener("input",e=>{
+
+renderUserList(e.target.value.toLowerCase());
+
+});
+
+/* MODAL */
+
+window.openNewChat=()=>{
+
+document.getElementById("newChatModal").style.display="flex";
+
+renderUserList();
+
+}
+
+window.closeNewChat=()=>{
+
+document.getElementById("newChatModal").style.display="none";
+
+}
+
+/* INITIALIZE */
+
+loadChats();
+loadUsers();
+
+</script></body>
 </html>
