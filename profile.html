@@ -1,14 +1,5 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>V-Tohnna IAM Profile</title>
-
-<style>
+<!DOCTYPE html><html><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>V-Tohnna IAM Profile</title><style>
 
 body{
 font-family:Arial;
@@ -63,75 +54,40 @@ background:#0056b3;
 text-align:center;
 }
 
-.profileCard img{
-width:120px;
-height:120px;
-border-radius:50%;
-object-fit:cover;
-margin-bottom:15px;
-border:3px solid #007BFF;
-}
-
-</style>
-
-</head>
-
-<body>
-
-<div class="header">
-
-<h2>V-Tohnna IAM Profile</h2>
-
-<div>
+</style></head><body><div class="header"><h2>V-Tohnna IAM Profile</h2><div>
 User: <b id="username"></b> |
 Role: <b id="role"></b>
-</div>
-
-</div>
-
-<div class="container">
-
-<div class="box" id="adminPanel">
-
-<h3>Create / Update Profile</h3>
-
-<input id="empid" placeholder="Enter Employee ID" oninput="findUser()">
-
-<input id="name" placeholder="Employee Name" disabled>
-
-<input type="file" id="photo">
-
-<input id="idnum" placeholder="ID Number">
+</div></div><div class="container"><div class="box" id="adminPanel"><h3>Create / Update Profile</h3><input id="empid" placeholder="Enter Employee ID" oninput="findUser()"><input id="name" placeholder="Employee Name" disabled><input id="idnum" placeholder="ID Number">
 <input id="phone" placeholder="Phone Number">
 <input id="email" placeholder="Email">
 <input id="grad" placeholder="Graduation">
 <input id="college" placeholder="College">
-<input id="marks" placeholder="Marks">
+<input id="marks" placeholder="Marks"><button onclick="saveProfile()">Save Profile</button>
 
-<button onclick="saveProfile()">Save Profile</button>
-
-</div>
-
-<div class="box">
-
-<h3>Profile</h3>
-
-<div id="profileView" class="profileCard"></div>
-
-</div>
-
-<a href="dashboard.html">
+</div><div class="box"><h3>Profile</h3><div id="profileView">Loading...</div></div><a href="dashboard.html">
 <button>Back to Dashboard</button>
-</a>
-
-</div>
-
-<script type="module">
+</a></div><script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-/* FIREBASE */
+import { 
+getFirestore,
+collection,
+query,
+where,
+getDocs,
+addDoc,
+updateDoc,
+doc
+} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+import {
+getAuth,
+onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+
+
+/* FIREBASE CONFIG */
 
 const firebaseConfig = {
 apiKey: "AIzaSyDOmNu5GsxWLWGw6FACF40vEZ7-rkCQGZc",
@@ -139,91 +95,135 @@ authDomain: "v-tohnna-d8fd0.firebaseapp.com",
 projectId: "v-tohnna-d8fd0",
 storageBucket: "v-tohnna-d8fd0.firebasestorage.app",
 messagingSenderId: "929268606043",
-appId: "1:929268606043:web:1b806754745934eaa30b7e",
-measurementId: "G-DB4SW4K8M2"
+appId: "1:929268606043:web:1b806754745934eaa30b7e"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
-/* SESSION */
 
-let username = localStorage.getItem("username")
-let role = localStorage.getItem("role")
+/* AUTH CHECK */
 
-if(!username){
+let currentEmpId=""
+let currentRole=""
+
+onAuthStateChanged(auth, async(user)=>{
+
+if(!user){
+
 window.location.href="index.html"
+return
+
 }
 
-document.getElementById("username").innerText = username
-document.getElementById("role").innerText = role
+document.getElementById("username").innerText=user.email
 
-if(role !== "Admin"){
+/* GET USER DATA */
+
+const q=query(collection(db,"users"),where("email","==",user.email))
+const snap=await getDocs(q)
+
+if(!snap.empty){
+
+let u=snap.docs[0].data()
+
+currentEmpId=u.empid
+currentRole=u.role
+
+document.getElementById("role").innerText=u.role
+
+if(u.role!=="Admin"){
 document.getElementById("adminPanel").style.display="none"
 }
 
-/* FIND USER */
+loadProfile()
 
-window.findUser = async function(){
-
-let empid = document.getElementById("empid").value.trim()
-
-const snapshot = await getDocs(collection(db,"users"))
-
-let name=""
-
-snapshot.forEach(doc=>{
-let u=doc.data()
-
-if(u.userid.split(" - ")[0]===empid){
-name=u.fullname
 }
 
 })
 
-document.getElementById("name").value=name
+
+/* FIND USER */
+
+window.findUser=async function(){
+
+let empid=document.getElementById("empid").value.trim()
+
+const q=query(collection(db,"users"),where("empid","==",empid))
+const snap=await getDocs(q)
+
+if(!snap.empty){
+
+let user=snap.docs[0].data()
+
+document.getElementById("name").value=user.fullname
+
+}else{
+
+document.getElementById("name").value="Employee Not Found"
 
 }
 
+}
+
+
 /* SAVE PROFILE */
 
-window.saveProfile = async function(){
+window.saveProfile=async function(){
+
+let empid=document.getElementById("empid").value.trim()
 
 let profile={
 
-empid:document.getElementById("empid").value,
+empid:empid,
 name:document.getElementById("name").value,
 idnum:document.getElementById("idnum").value,
 phone:document.getElementById("phone").value,
 email:document.getElementById("email").value,
 graduation:document.getElementById("grad").value,
 college:document.getElementById("college").value,
-marks:document.getElementById("marks").value,
-username:username
+marks:document.getElementById("marks").value
 
 }
+
+const q=query(collection(db,"profiles"),where("empid","==",empid))
+const snap=await getDocs(q)
+
+if(!snap.empty){
+
+await updateDoc(doc(db,"profiles",snap.docs[0].id),profile)
+alert("Profile Updated")
+
+}else{
 
 await addDoc(collection(db,"profiles"),profile)
-
-alert("Profile saved")
-
-loadProfile()
+alert("Profile Created")
 
 }
+
+}
+
 
 /* LOAD PROFILE */
 
 async function loadProfile(){
 
-const snapshot = await getDocs(collection(db,"profiles"))
+const q=query(collection(db,"profiles"),where("empid","==",currentEmpId))
+
+const snap=await getDocs(q)
 
 let view=document.getElementById("profileView")
 
-snapshot.forEach(doc=>{
+if(snap.empty){
 
-let p=doc.data()
+view.innerHTML="Profile not created yet"
 
-if(p.username===username){
+return
+
+}
+
+let p=snap.docs[0].data()
 
 view.innerHTML=`
 
@@ -239,13 +239,5 @@ view.innerHTML=`
 
 }
 
-})
-
-}
-
-loadProfile()
-
-</script>
-
-</body>
+</script></body>
 </html>
