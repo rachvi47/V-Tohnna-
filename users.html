@@ -10,67 +10,126 @@
 
 <style>
 
-body {
-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-background: #f4f6f9;
-padding: 40px;
-text-align: center;
+body{
+font-family:'Segoe UI',Tahoma;
+background:#f4f6f9;
+padding:20px;
+text-align:center;
 }
 
-.box {
-background: white;
-padding: 30px;
-max-width: 800px;
-margin: auto;
-border-radius: 8px;
-box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+.box{
+background:white;
+padding:20px;
+max-width:950px;
+margin:auto;
+border-radius:8px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
 }
 
-button {
-padding: 8px 12px;
-margin: 3px;
-border: none;
-color: white;
-border-radius: 4px;
-cursor: pointer;
-font-size: 14px;
+h2{
+margin-bottom:10px;
 }
 
-.delete { background: #dc3545; }
-.reset { background: #ff9800; }
+/* SEARCH BAR */
 
-.register {
-background: #28a745;
-margin-bottom: 20px;
-text-decoration: none;
-display: inline-block;
+.searchBar{
+width:100%;
+padding:10px;
+margin-bottom:15px;
+border-radius:6px;
+border:1px solid #ccc;
+font-size:14px;
 }
 
-table {
-width: 100%;
-border-collapse: collapse;
-margin-top: 10px;
+/* BUTTONS */
+
+button{
+padding:7px 12px;
+margin:3px;
+border:none;
+color:white;
+border-radius:4px;
+cursor:pointer;
+font-size:13px;
 }
 
-th, td {
-border: 1px solid #eee;
-padding: 12px;
-text-align: left;
+.delete{background:#dc3545;}
+.reset{background:#ff9800;}
+.update{background:#007bff;}
+
+.register{
+background:#28a745;
+margin-bottom:15px;
+text-decoration:none;
+display:inline-block;
+padding:10px 18px;
+color:white;
+border-radius:5px;
 }
 
-th {
-background-color: #f8f9fa;
-color: #333;
+/* TABLE */
+
+table{
+width:100%;
+border-collapse:collapse;
 }
 
-tr:hover { background-color: #fcfcfc; }
+th,td{
+border:1px solid #eee;
+padding:10px;
+text-align:left;
+}
 
-.dashboard-link {
-margin-top: 20px;
-display: block;
-color: #6610f2;
-text-decoration: none;
-font-weight: bold;
+th{
+background:#f8f9fa;
+}
+
+.roleBox{
+font-weight:bold;
+}
+
+select{
+padding:5px;
+border-radius:4px;
+margin-top:5px;
+}
+
+/* MOBILE VIEW */
+
+@media(max-width:600px){
+
+table,thead,tbody,th,td,tr{
+display:block;
+}
+
+thead{
+display:none;
+}
+
+tr{
+background:white;
+margin-bottom:15px;
+padding:10px;
+border-radius:8px;
+box-shadow:0 2px 8px rgba(0,0,0,0.08);
+}
+
+td{
+border:none;
+padding:8px;
+}
+
+td:before{
+font-weight:bold;
+display:block;
+color:#555;
+}
+
+td:nth-child(1):before{content:"ID";}
+td:nth-child(2):before{content:"Name";}
+td:nth-child(3):before{content:"Role";}
+td:nth-child(4):before{content:"Action";}
+
 }
 
 </style>
@@ -83,28 +142,24 @@ font-weight: bold;
 
 <h2>V-Tohnna IAM - Users</h2>
 
-<a href="register.html" class="register">
-<button style="background:transparent;padding:0;">Register New User</button>
-</a>
+<a href="register.html" class="register">Register New User</a>
+
+<input type="text" id="searchInput" class="searchBar" placeholder="Search user by name or ID">
 
 <table>
 
 <thead>
-
 <tr>
 <th>ID</th>
 <th>Name</th>
 <th>Role</th>
 <th>Action</th>
 </tr>
-
 </thead>
 
 <tbody id="userTableBody"></tbody>
 
 </table>
-
-<a href="dashboard.html" class="dashboard-link">Back to Dashboard</a>
 
 </div>
 
@@ -113,80 +168,149 @@ font-weight: bold;
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
 import { getFirestore, collection, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-/* FIREBASE CONFIG */
+/* FIREBASE */
 
-const firebaseConfig = {
-apiKey: "AIzaSyDOmNu5GsxWLWGw6FACF40vEZ7-rkCQGZc",
-authDomain: "v-tohnna-d8fd0.firebaseapp.com",
-projectId: "v-tohnna-d8fd0",
-storageBucket: "v-tohnna-d8fd0.firebasestorage.app",
-messagingSenderId: "929268606043",
-appId: "1:929268606043:web:1b806754745934eaa30b7e",
-measurementId: "G-DB4SW4K8M2"
+const firebaseConfig={
+apiKey:"AIzaSyDOmNu5GsxWLWGw6FACF40vEZ7-rkCQGZc",
+authDomain:"v-tohnna-d8fd0.firebaseapp.com",
+projectId:"v-tohnna-d8fd0",
+storageBucket:"v-tohnna-d8fd0.firebasestorage.app",
+messagingSenderId:"929268606043",
+appId:"1:929268606043:web:1b806754745934eaa30b7e"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
 
-/* DISPLAY USERS */
+/* CHANGE AFTER LOGIN */
 
-async function displayUsers(){
+let currentUserRole="Admin"; // Admin / Developer / User
 
-const tableBody = document.getElementById("userTableBody")
+let allUsers=[];
 
-tableBody.innerHTML=""
+const tableBody=document.getElementById("userTableBody");
+const searchInput=document.getElementById("searchInput");
 
-const snapshot = await getDocs(collection(db,"users"))
+/* LOAD USERS */
 
-if(snapshot.empty){
+async function loadUsers(){
 
-tableBody.innerHTML="<tr><td colspan='4'>No users found</td></tr>"
-return
+const snapshot=await getDocs(collection(db,"users"));
+
+allUsers=[];
+
+snapshot.forEach(docSnap=>{
+let data=docSnap.data();
+data.docId=docSnap.id;
+allUsers.push(data);
+});
+
+/* SORT BY ID */
+
+allUsers.sort((a,b)=> Number(a.userid) - 
+  Number(b.userid));
+
+displayUsers(allUsers);
 
 }
 
-snapshot.forEach((docSnap)=>{
+/* DISPLAY USERS */
 
-let user = docSnap.data()
-let id = docSnap.id
+function displayUsers(users){
 
-let row = `
+tableBody.innerHTML="";
+
+if(users.length===0){
+
+tableBody.innerHTML="<tr><td colspan='4'>No users found</td></tr>";
+return;
+
+}
+
+users.forEach(user=>{
+
+let roleSection="";
+
+/* ONLY ADMIN CAN CHANGE ROLE */
+
+if(currentUserRole==="Admin"){
+
+roleSection=`
+
+<div class="roleBox">
+Current: ${user.role}
+</div>
+
+<select id="role-${user.docId}">
+<option ${user.role==="Admin"?"selected":""}>Admin</option>
+<option ${user.role==="Developer"?"selected":""}>Developer</option>
+<option ${user.role==="User"?"selected":""}>User</option>
+</select>
+
+<button class="update" onclick="updateRole('${user.docId}')">Update</button>
+
+`;
+
+}else{
+
+roleSection=`<div class="roleBox">${user.role}</div>`;
+
+}
+
+let row=`
+
 <tr>
 
 <td>${user.userid}</td>
 
 <td>${user.fullname}</td>
 
-<td>${user.role}</td>
+<td>${roleSection}</td>
 
 <td>
 
-<button class="reset" onclick="resetPassword('${id}','${user.role}','${user.username}')">Reset PW</button>
+<button class="reset" onclick="resetPassword('${user.docId}','${user.role}','${user.username}')">Reset</button>
 
-<button class="delete" onclick="deleteUser('${id}','${user.fullname}')">Delete</button>
+<button class="delete" onclick="deleteUser('${user.docId}','${user.fullname}')">Delete</button>
 
 </td>
 
 </tr>
-`
 
-tableBody.innerHTML += row
+`;
 
-})
+tableBody.innerHTML+=row;
+
+});
 
 }
 
-/* DELETE USER */
+/* SEARCH */
 
-window.deleteUser = async function(id,name){
+searchInput.addEventListener("keyup",()=>{
 
-if(confirm("Delete user "+name+" ?")){
+let value=searchInput.value.toLowerCase();
 
-await deleteDoc(doc(db,"users",id))
+let filtered=allUsers.filter(user=>
+user.fullname.toLowerCase().includes(value) ||
+String(user.userid).includes(value)
+);
 
-alert("User deleted")
+displayUsers(filtered);
 
-displayUsers()
+});
+
+/* DELETE */
+
+window.deleteUser=async function(id,name){
+
+if(confirm("Delete "+name+" ?")){
+
+await deleteDoc(doc(db,"users",id));
+
+alert("User deleted");
+
+loadUsers();
 
 }
 
@@ -194,23 +318,39 @@ displayUsers()
 
 /* RESET PASSWORD */
 
-window.resetPassword = async function(id,role,username){
+window.resetPassword=async function(id,role,username){
 
-let newPass = role==="Admin" ? "7890" : "1234"
+let newPass=role==="Admin"?"7890":"1234";
 
 if(confirm("Reset password for "+username+" ?")){
 
 await updateDoc(doc(db,"users",id),{
 password:newPass
-})
+});
 
-alert("Password reset to "+newPass)
-
-}
+alert("Password reset to "+newPass);
 
 }
 
-displayUsers()
+}
+
+/* UPDATE ROLE */
+
+window.updateRole=async function(id){
+
+let newRole=document.getElementById("role-"+id).value;
+
+await updateDoc(doc(db,"users",id),{
+role:newRole
+});
+
+alert("Role updated to "+newRole);
+
+loadUsers();
+
+}
+
+loadUsers();
 
 </script>
 
