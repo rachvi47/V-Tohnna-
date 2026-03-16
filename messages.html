@@ -1,30 +1,21 @@
-
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html><html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V-Tohnna Secure Chat</title><script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script><style>
-
-:root{
---primary:#007BFF;
---green:#25d366;
---bg:#f0f2f5;
---dark:#1e2a38;
-}
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>V-Tohnna Secure Chat</title><script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script><style>
 
 body{
 margin:0;
-font-family:Segoe UI;
-background:var(--bg);
+font-family:Arial;
 height:100vh;
 display:flex;
 flex-direction:column;
+background:#f0f2f5;
 }
 
 /* HEADER */
 
 .header{
-background:var(--dark);
+background:#1e2a38;
 color:white;
 padding:10px 15px;
 display:flex;
@@ -50,9 +41,9 @@ flex-direction:column;
 }
 
 .sidebar-header{
-padding:10px;
 display:flex;
 justify-content:space-between;
+padding:10px;
 border-bottom:1px solid #eee;
 }
 
@@ -99,16 +90,17 @@ background:#e5ddd5;
 }
 
 .chat-header{
+display:flex;
+align-items:center;
+justify-content:space-between;
 background:#ededed;
 padding:10px;
-display:flex;
-justify-content:space-between;
 }
 
 .messages{
 flex:1;
-padding:15px;
 overflow-y:auto;
+padding:15px;
 display:flex;
 flex-direction:column;
 gap:8px;
@@ -154,21 +146,19 @@ border:1px solid #ccc;
 }
 
 .send{
-background:var(--primary);
+background:#007bff;
 color:white;
 border:none;
 padding:8px 15px;
 border-radius:20px;
-cursor:pointer;
 }
 
 .file{
-background:var(--green);
+background:#25d366;
 color:white;
 border:none;
 padding:8px 10px;
 border-radius:20px;
-cursor:pointer;
 }
 
 /* NEW CHAT MODAL */
@@ -187,8 +177,8 @@ justify-content:center;
 
 .modal-box{
 background:white;
-width:350px;
 padding:20px;
+width:350px;
 border-radius:8px;
 max-height:80vh;
 overflow:auto;
@@ -197,21 +187,28 @@ overflow:auto;
 /* MOBILE */
 
 @media(max-width:700px){
-.sidebar{width:200px}
+
+.sidebar{
+width:200px;
+}
+
 }
 
 </style></head><body><div class="header">
 <b>V-Tohnna Secure</b>
 <div>ID: <span id="myid"></span> | <span id="myname"></span></div>
-</div><div class="main"><div class="sidebar"><div class="sidebar-header">
+</div><div class="main"><!-- SIDEBAR --><div class="sidebar"><div class="sidebar-header">
 <span>Chats</span>
 <button onclick="openNewChat()">+ New</button>
-</div><input class="search" id="search" placeholder="Search chats"><div class="chat-list" id="chatlist"></div></div><div class="chat"><div class="chat-header">
-<div id="chatname">Select Chat</div>
-<button onclick="clearChat()">Clear</button>
-</div><div class="messages" id="messages"></div><div class="input"><input type="file" id="file" hidden>
-<button class="file" onclick="file.click()">📎</button><input id="msg" placeholder="Type message">
-<button class="send" onclick="send()">Send</button></div></div></div><!-- NEW CHAT MODAL --><div class="modal" id="newChatModal"><div class="modal-box"><h3>Start New Chat</h3><input id="userSearch" placeholder="Search name or ID" style="width:100%;padding:8px;margin-bottom:10px"><div id="userList"></div><button onclick="closeNewChat()">Close</button>
+</div><input class="search" placeholder="Search chats"><div id="chatlist" class="chat-list"></div></div><!-- CHAT AREA --><div class="chat"><div class="chat-header"><button id="backBtn" onclick="backChats()" style="display:none;">⬅</button>
+
+<div id="chatname">Select Chat</div><button onclick="clearChat()">Clear</button>
+
+</div><div id="messages" class="messages"></div><div class="input"><input type="file" id="file" hidden><button class="file" onclick="file.click()">📎</button>
+
+<input id="msg" placeholder="Type message"><button class="send" onclick="send()">Send</button>
+
+</div></div></div><!-- NEW CHAT MODAL --><div id="newChatModal" class="modal"><div class="modal-box"><h3>Start New Chat</h3><input id="userSearch" placeholder="Search name or ID" style="width:100%;padding:8px;margin-bottom:10px"><div id="userList"></div><button onclick="closeNewChat()">Close</button>
 
 </div></div><script type="module">
 
@@ -231,8 +228,6 @@ deleteDoc
 }
 from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-/* FIREBASE */
-
 const firebaseConfig={
 apiKey:"AIzaSyDOmNu5GsxWLWGw6FACF40vEZ7-rkCQGZc",
 authDomain:"v-tohnna-d8fd0.firebaseapp.com",
@@ -242,11 +237,7 @@ projectId:"v-tohnna-d8fd0"
 const app=initializeApp(firebaseConfig);
 const db=getFirestore(app);
 
-/* SECURITY */
-
 const SECRET="v-secure";
-
-/* USER INFO */
 
 let myID=localStorage.getItem("userid");
 let myName=localStorage.getItem("username");
@@ -256,8 +247,6 @@ let allUsers=[];
 
 document.getElementById("myid").innerText=myID?.split(" - ")[0];
 document.getElementById("myname").innerText=myName;
-
-/* ENCRYPTION */
 
 function encrypt(t){
 return CryptoJS.AES.encrypt(t,SECRET).toString();
@@ -290,7 +279,7 @@ if(m.from!==myID && m.to!==myID) return;
 let other=m.from===myID?m.to:m.from;
 
 if(!map.has(other)){
-map.set(other,{msg:m.message,read:m.read});
+map.set(other,{msg:m.message});
 }
 
 });
@@ -301,13 +290,13 @@ list.innerHTML="";
 map.forEach((v,k)=>{
 
 let div=document.createElement("div");
+
 div.className="chat-item";
 
 div.innerHTML=`
 <b>${k.split(" - ")[1]}</b>
 <br>
 <small>${decrypt(v.msg)}</small>
-${!v.read?'<span class="unread">!</span>':""}
 `;
 
 div.onclick=()=>openChat(k);
@@ -325,6 +314,13 @@ list.appendChild(div);
 function openChat(user){
 
 selected=user;
+
+if(window.innerWidth<700){
+
+document.querySelector(".sidebar").style.display="none";
+document.getElementById("backBtn").style.display="block";
+
+}
 
 document.getElementById("chatname").innerText=user;
 
@@ -351,7 +347,7 @@ let content=m.file
 
 div.innerHTML=`${content}<div class="time">${m.time}</div>`;
 
-/* MESSAGE ACTION */
+/* DELETE / EDIT */
 
 div.oncontextmenu=(e)=>{
 
@@ -391,7 +387,7 @@ area.scrollTop=area.scrollHeight;
 
 }
 
-/* SEND MESSAGE */
+/* SEND */
 
 window.send=async function(){
 
@@ -404,20 +400,18 @@ from:myID,
 to:selected,
 message:encrypt(inp.value),
 timestamp:Date.now(),
-time:new Date().toLocaleTimeString(),
-read:false
+time:new Date().toLocaleTimeString()
 });
 
 inp.value="";
 
 }
 
-/* FILE SEND */
+/* FILE */
 
 file.onchange=async function(){
 
 let f=this.files[0];
-
 if(!f||!selected) return;
 
 let reader=new FileReader();
@@ -451,34 +445,25 @@ snap.forEach(async d=>{
 
 let m=d.data();
 
-if(
-(m.from===myID && m.to===selected) ||
-(m.from===selected && m.to===myID)
-){
-
+if((m.from===myID && m.to===selected)||(m.from===selected && m.to===myID)){
 await deleteDoc(doc(db,"messages",d.id));
-
 }
 
 });
 
 }
 
-/* LOAD USERS */
+/* USERS */
 
 async function loadUsers(){
 
 const snap=await getDocs(collection(db,"users"));
 
-allUsers=snap.docs
-.map(d=>d.data())
-.filter(u=>u.userid!==myID);
+allUsers=snap.docs.map(d=>d.data()).filter(u=>u.userid!==myID);
 
 renderUserList();
 
 }
-
-/* RENDER USER LIST */
 
 function renderUserList(filter=""){
 
@@ -487,11 +472,7 @@ const list=document.getElementById("userList");
 list.innerHTML="";
 
 allUsers
-.filter(u=>
-u.userid.toLowerCase().includes(filter) ||
-u.fullname.toLowerCase().includes(filter)
-)
-
+.filter(u=>u.userid.toLowerCase().includes(filter)||u.fullname.toLowerCase().includes(filter))
 .forEach(u=>{
 
 let div=document.createElement("div");
@@ -500,18 +481,11 @@ div.style.padding="10px";
 div.style.borderBottom="1px solid #eee";
 div.style.cursor="pointer";
 
-div.innerHTML=`
-<b>${u.fullname}</b>
-<br>
-<small>${u.userid}</small>
-`;
+div.innerHTML=`<b>${u.fullname}</b><br><small>${u.userid}</small>`;
 
 div.onclick=()=>{
-
 openChat(u.userid);
-
 closeNewChat();
-
 };
 
 list.appendChild(div);
@@ -520,31 +494,27 @@ list.appendChild(div);
 
 }
 
-/* USER SEARCH */
-
 document.getElementById("userSearch").addEventListener("input",e=>{
-
 renderUserList(e.target.value.toLowerCase());
-
 });
 
-/* MODAL */
-
 window.openNewChat=()=>{
-
 document.getElementById("newChatModal").style.display="flex";
-
 renderUserList();
-
 }
 
 window.closeNewChat=()=>{
-
 document.getElementById("newChatModal").style.display="none";
+}
+
+window.backChats=function(){
+
+document.querySelector(".sidebar").style.display="flex";
+document.getElementById("backBtn").style.display="none";
 
 }
 
-/* INITIALIZE */
+/* INIT */
 
 loadChats();
 loadUsers();
