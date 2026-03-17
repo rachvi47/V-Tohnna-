@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V-Tohnna</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    scroll-behavior:smooth;
+    background:#f4f7fa;
+    font-family:monospace;
+}
+
+/* HEADER */
+header{
+    position:fixed;
+    width:100%;
+    top:0;
+    background:#0d1b2a;
+    color:white;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:15px 20px;
+    z-index:1000;
+}
+
+.logo{
+    font-size:22px;
+    font-weight:bold;
+}
+
+.menu-btn{
+    font-size:28px;
+    cursor:pointer;
+}
+
+/* SIDE MENU */
+.side-menu{
+    position:fixed;
+    top:0;
+    right:-260px;
+    width:260px;
+    height:100%;
+    background:#1b263b;
+    padding-top:60px;
+    transition:0.4s;
+}
+
+.side-menu a{
+    display:block;
+    padding:15px;
+    color:white;
+    text-decoration:none;
+    border-bottom:1px solid rgba(255,255,255,0.1);
+}
+
+.side-menu a:hover{
+    background:#0077b6;
+}
+
+.close-btn{
+    position:absolute;
+    top:15px;
+    right:20px;
+    font-size:30px;
+    cursor:pointer;
+    color:white;
+}
+
+/* SECTIONS */
+section{
+    padding:100px 10% 60px 10%;
+    min-height:100vh;
+}
+
+#home{
+    background:url('home.png') no-repeat center center/cover;
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+}
+
+#home h1{
+    font-size:45px;
+    background:rgba(0,0,0,0.6);
+    padding:20px;
+    border-radius:10px;
+}
+
+h2{
+    margin-bottom:30px;
+    color:#0077b6;
+    text-align:center;
+}
+
+/* CARD LAYOUT */
+.card-container{
+    display:flex;
+    flex-wrap:wrap;
+    gap:30px;
+    justify-content:center;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    width:280px;
+    border-radius:10px;
+    text-align:center;
+    box-shadow:0 5px 15px rgba(0,0,0,0.1);
+    transition:0.3s;
+}
+
+.card:hover{
+    transform:translateY(-10px);
+}
+
+.card img{
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    object-fit:cover;
+    margin-bottom:15px;
+    border:4px solid #0077b6;
+}
+
+/* GALLERY */
+.gallery{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:20px;
+}
+
+.gallery img{
+    width:100%;
+    height:200px;
+    object-fit:cover;
+    border-radius:10px;
+    transition:0.3s;
+}
+
+.gallery img:hover{
+    transform:scale(1.05);
+}
+
+/* CONTACT */
+.contact p{
+    margin:10px 0;
+    text-align:center;
+}
+
+/* FOOTER */
+footer{
+    background:#0d1b2a;
+    color:white;
+    text-align:center;
+    padding:30px 20px;
+}
+
+footer p{
+    margin:10px 0;
+}
+
+.disclaimer{
+    font-size:13px;
+    opacity:0.8;
+    max-width:900px;
+    margin:0 auto;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">V-Tohnna</div>
+    <div class="menu-btn" onclick="openMenu()">☰</div>
+</header>
+
+<div class="side-menu" id="menu">
+    <div class="close-btn" onclick="closeMenu()">×</div>
+    <a href="#home" onclick="closeMenu()">Home</a>
+    <a href="#about" onclick="closeMenu()">About Us</a>
+    <a href="#admin" onclick="closeMenu()">Administration Members</a>
+    <a href="#services" onclick="closeMenu()">Services</a>
+    <a href="#gallery" onclick="closeMenu()">Gallery</a>
+    <a href="#contact" onclick="closeMenu()">Contact</a>
+</div>
+
+<section id="home">
+    <h1>Empowering Technology for the Future</h1>
+</section>
+
+<section id="about">
+    <h2>About Us</h2>
+    <p style="text-align:center;" font-family="monospace">
+        <h2> V-Tohnna is a forward-thinking technology company established in 2026 with a mission to deliver reliable and innovative digital solutions. We specialize in website design, development, and maintenance services tailored to meet the evolving needs of businesses and individuals.
+At V-Tohnna, we believe technology should simplify growth, not complicate it. Our team focuses on building responsive, secure, and performance-driven websites that help organizations strengthen their digital presence.
+We are committed to quality, transparency, and long-term partnerships. Every project we undertake reflects our dedication to professionalism, creativity, and technical excellence.
+As we grow, our vision is to expand into advanced IT solutions, software development, cloud services, and digital transformation — becoming a trusted technology partner for businesses across industries.
+        </h2> </p>
+</section>
+
+<section id="admin">
+    <h2>Administration Members</h2>
+
+    <div class="card-container">
+
+        <div class="card">
+            <img src="vijay.jpg">
+            <h3>Mr. Vijay Kumar Kuppili</h3>
+            <p>Co-Founder | Director | Head of Web Developer</p>
+        </div>
+
+        <div class="card">
+            <img src="258T1A4259.jpg">
+            <h3>Mr. Samuel Pretham Christopher Kukkamalla</h3>
+            <p>Co-Founder | Director | Head of IT Department</p>
+        </div>
+         <div class="card">
+            <img src="sreekar.jpg">
+            <h3>Mr.Sreekar</h3>
+            <p>Director | CEO</p>
+        </div>
+
+        <div class="card">
+            <img src="258T1A4265.jpg">
+            <h3>Mr. Rama Lingeswara Sai Vara Prasad Mandadapu</h3>
+            <p> Finance Director</p>
+        </div>
+
+        <div class="card">
+            <img src="258T1A4257.jpg">
+            <h3>Mr. Bhaskar Reddy Kota</h3>
+            <p>General Manager</p>
+        </div>
+
+    </div>
+</section>
+
+<section id="services">
+    <h2>Services</h2>
+
+    <div class="card-container">
+        <div class="card">
+            <h3>Website Design</h3>
+            <p>Creative, responsive and modern designs.</p>
+        </div>
+
+        <div class="card">
+            <h3>Website Development</h3>
+            <p>Secure and scalable development solutions.</p>
+        </div>
+
+        <div class="card">
+            <h3>Website Maintenance</h3>
+            <p>Performance monitoring and regular updates.</p>
+        </div>
+    </div>
+</section>
+
+<section id="gallery">
+    <h2>
+
+    <div class="gallery">
+        <img src="tower.png">
+        <img src="board.png">
+        <img src="office.png">
+        <img src="share.png">
+    </div>
+</section>
+
+<section id="contact" class="contact">
+    <h2>Contact</h2>
+    <p><strong>Phone:</strong> 9108374652</p>
+    <p><strong>Email:</strong> rachvi47@gmail.com</p>
+    <p><strong>Address:</strong> Tohnna tower, vijayawada, NTR district, Andhara Pradesh, India</p>
+
+     <p class="disclaimer">
+         <h2>
+        Disclaimer: <br>
+             The information provided on this website is for general informational purposes only.
+        V-Tohnna makes every effort to ensure that the information presented is accurate and up to date;
+        however, we make no warranties or representations of any kind about the completeness or reliability
+        of the information. Any reliance you place on such information is strictly at your own risk.
+        V-Tohnna shall not be held liable for any loss or damage arising from the use of this website or its services.
+         </h2> </p>
+</section>
+<footer>
+    <p>© 2026 V-Tohnna. All rights reserved.</p>
+
+   
+</footer>
+
+<script>
+function openMenu(){
+    document.getElementById("menu").style.right="0";
+}
+
+function closeMenu(){
+    document.getElementById("menu").style.right="-260px";
+}
+</script>
+
+</body>
+</html>
